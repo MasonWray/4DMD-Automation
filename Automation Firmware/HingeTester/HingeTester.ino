@@ -4,16 +4,28 @@
  Author:	Mason Wray
 */
 
+#include <Adafruit_DotStar.h>
 
-void setup() {
+#include "src/StatusIndicator.h"
+
+
+Adafruit_DotStar ds = Adafruit_DotStar(1, 8, 6, DOTSTAR_BGR);
+StatusIndicator status = StatusIndicator(&ds);
+
+void setup()
+{
+	status.begin();
+	status.set(StatusIndicator::STARTING);
 	Serial.begin(115200);
 	while (!Serial)
 	{
-
+		status.update();
 	}
+	status.set(StatusIndicator::UPDATING);
 	Serial.println("MobileDemand Hinge Failure Tester");
 }
 
-void loop() {
-
+void loop()
+{
+	status.update();
 }
