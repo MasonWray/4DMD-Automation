@@ -1,0 +1,7 @@
+.vs
+**/CuringChamberController/__vm/**
+**/CuringChamberController/Debug/**
+**/CuringChamberController/Release/**
+**/HingeTester/__vm/**
+**/HingeTester/Debug/**
+**/HingeTester/Release/**
