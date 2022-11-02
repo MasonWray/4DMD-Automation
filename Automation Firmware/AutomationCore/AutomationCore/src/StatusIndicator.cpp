@@ -10,6 +10,7 @@ StatusIndicator::StatusIndicator(Adafruit_DotStar* ds)
     state = Status_State::STARTING;
     color_normal = _ds->gamma32(_ds->Color(87, 148, 255));
     color_err = _ds->gamma32(_ds->Color(175, 6, 6));
+    color_warn = _ds->gamma32(_ds->Color(224, 195, 4));
     color_busy = _ds->gamma32(_ds->Color(202, 213, 235));
     br_max = 30;
     br_min = 4;
