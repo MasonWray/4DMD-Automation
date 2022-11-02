@@ -48,22 +48,11 @@ F 3 "" H 8250 3650 50  0001 C CNN
 $EndComp
 $Comp
 L Connector:Conn_01x02_Female J?
-U 1 1 6361E597
-P 4400 1700
-F 0 "J?" H 4428 1676 50  0000 L CNN
-F 1 "Conn_01x02_Female" H 4428 1585 50  0000 L CNN
-F 2 "" H 4400 1700 50  0001 C CNN
-F 3 "~" H 4400 1700 50  0001 C CNN
-	1    4400 1700
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:Conn_01x02_Female J?
 U 1 1 6361FE6E
 P 6000 1700
 F 0 "J?" H 6028 1676 50  0000 L CNN
 F 1 "Conn_01x02_Female" H 6028 1585 50  0000 L CNN
-F 2 "" H 6000 1700 50  0001 C CNN
+F 2 "TerminalBlock_TE-Connectivity:TerminalBlock_TE_282834-2_1x02_P2.54mm_Horizontal" H 6000 1700 50  0001 C CNN
 F 3 "~" H 6000 1700 50  0001 C CNN
 	1    6000 1700
 	1    0    0    -1  
@@ -74,7 +63,7 @@ U 1 1 6362003C
 P 2650 4100
 F 0 "J?" H 2678 4076 50  0000 L CNN
 F 1 "Conn_01x04_Female" H 2678 3985 50  0000 L CNN
-F 2 "" H 2650 4100 50  0001 C CNN
+F 2 "TerminalBlock_RND:TerminalBlock_RND_205-00234_1x04_P5.08mm_Horizontal" H 2650 4100 50  0001 C CNN
 F 3 "~" H 2650 4100 50  0001 C CNN
 	1    2650 4100
 	-1   0    0    1   
@@ -304,4 +293,15 @@ Wire Wire Line
 	8000 4250 8100 4250
 Wire Wire Line
 	8100 4350 8000 4350
+$Comp
+L Connector:Conn_01x02_Female J?
+U 1 1 6361E597
+P 4400 1700
+F 0 "J?" H 4428 1676 50  0000 L CNN
+F 1 "Conn_01x02_Female" H 4428 1585 50  0000 L CNN
+F 2 "TerminalBlock_TE-Connectivity:TerminalBlock_TE_282834-2_1x02_P2.54mm_Horizontal" H 4400 1700 50  0001 C CNN
+F 3 "~" H 4400 1700 50  0001 C CNN
+	1    4400 1700
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
