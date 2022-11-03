@@ -7,9 +7,9 @@
 #define EN_PIN 11
 #define DR_PIN 12
 #define ST_PIN 13
-#define M1_PIN 7
-#define M2_PIN 9
-#define M3_PIN 10
+#define M0_PIN 7
+#define M1_PIN 9
+#define M2_PIN 10
 
 #define CONFIG_FILE "data.csv"
 
@@ -29,25 +29,28 @@ FatVolume fatfs;
 
 const bool req_serial = false;
 
-const int num_steps = 5000;
-const int period = 500;
-const int interval = 1;
+const int startup = 2500;
+const int num_steps = 800;
+const int period = 10;
+const int interval_base = 150;
+const int interval_variance = 300;
 
 bool dir = false;
 int pos = 0;
 
 void setup()
 {
+	pinMode(M0_PIN, OUTPUT);
 	pinMode(M1_PIN, OUTPUT);
 	pinMode(M2_PIN, OUTPUT);
-	pinMode(M3_PIN, OUTPUT);
-	digitalWrite(M1_PIN, HIGH);
+	digitalWrite(M0_PIN, HIGH);
+	digitalWrite(M1_PIN, LOW);
 	digitalWrite(M2_PIN, HIGH);
-	digitalWrite(M3_PIN, HIGH);
 
 	pinMode(EN_PIN, OUTPUT);
 	pinMode(ST_PIN, OUTPUT);
 	pinMode(DR_PIN, OUTPUT);
+	delay(startup);
 	digitalWrite(EN_PIN, HIGH);
 	digitalWrite(DR_PIN, HIGH);
 	dir = true;
@@ -147,6 +150,10 @@ void loop()
 
 	step();
 	status.update();
+	
 
-	delay(interval);
+	if (interval_base - period > 0)
+	{
+		delayMicroseconds(interval_base - period);
+	}
 }
