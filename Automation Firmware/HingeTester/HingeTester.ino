@@ -29,11 +29,11 @@ FatVolume fatfs;
 
 const bool req_serial = false;
 
-const int startup = 2500;
+const int startup = 500;
 const int num_steps = 800;
 const int period = 10;
 const int interval_base = 150;
-const int interval_variance = 300;
+const int interval_variance = 1000;
 
 bool dir = false;
 int pos = 0;
@@ -118,9 +118,15 @@ void step()
 	digitalWrite(ST_PIN, LOW);
 }
 
+int calcDelay(int period, int base, int variance, int length, int pos)
+{
+	double x = (double)pos / (double)length;
+	double adj = ((cos(2.0 * PI * x) / 2.0) + 0.5) * (double)variance;
+	return base + round(adj) - period;
+}
+
 void loop()
 {
-	Serial.println(pos);
 	if (pos <= 0)
 	{
 		Serial.println("bottom");
@@ -150,10 +156,10 @@ void loop()
 
 	step();
 	status.update();
-	
 
-	if (interval_base - period > 0)
-	{
-		delayMicroseconds(interval_base - period);
-	}
+	int t = calcDelay(period, interval_base, interval_variance, num_steps, pos);
+	Serial.println(t);
+
+	delayMicroseconds(t);
+
 }
