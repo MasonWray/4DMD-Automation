@@ -62,8 +62,8 @@ void setup()
 	status.begin();
 	status.set(StatusIndicator::STARTING);
 
+	// Wait for serial connection
 	Serial.begin(115200);
-
 	int serial_timer = millis();
 	while (millis() - serial_timer < SERIAL_DELAY)
 	{
@@ -75,18 +75,13 @@ void setup()
 		}
 	}
 
+	// Initialize flash chip
 	if (!flash.begin())
 	{
 		Serial.println("Error, failed to initialize flash chip!");
 		status.set(StatusIndicator::ERR);
 		while (1) status.update();
 	}
-
-	Serial.print("JEDEC ID: 0x");
-	Serial.println(flash.getJEDECID(), HEX);
-	Serial.print("Flash size: ");
-	Serial.print(flash.size() / 1024);
-	Serial.println(" KB");
 
 	if (!fatfs.begin(&flash))
 	{
@@ -95,10 +90,11 @@ void setup()
 		status.set(StatusIndicator::ERR);
 		while (1) status.update();
 	}
+
 	status.set(StatusIndicator::NORMAL);
 	Serial.println("MobileDemand Hinge Failure Tester");
 
-	File32 dataFile = fatfs.open(CONFIG_FILE, FILE_WRITE);
+	/*File32 dataFile = fatfs.open(CONFIG_FILE, FILE_WRITE);
 	if (dataFile)
 	{
 		dataFile.print("Hello!\n");
@@ -117,7 +113,7 @@ void setup()
 		while (1) yield();
 	}
 	String line = readFile.readStringUntil('\n');
-	Serial.print(F("First line of test.txt: ")); Serial.println(line);
+	Serial.print(F("First line of test.txt: ")); Serial.println(line);*/
 }
 
 void step()
@@ -136,36 +132,43 @@ int calcDelay(int period, int base, int variance, int length, int pos)
 
 void loop()
 {
-	if (pos <= 0)
+	// Enter REPL is serial connection exists
+	if (enter_config)
 	{
-		pos = 0;
-		dir = true;
-		digitalWrite(DR_PIN, HIGH);
-		status.set(StatusIndicator::NORMAL);
+
 	}
 
-	if (pos >= num_steps)
-	{
-		pos = num_steps;
-		dir = false;
-		digitalWrite(DR_PIN, LOW);
-		status.set(StatusIndicator::WARN);
-	}
-
-	if (dir)
-	{
-		pos++;
-	}
+	// Start operation is confic session is not requested
 	else
 	{
-		pos--;
+		if (pos <= 0)
+		{
+			pos = 0;
+			dir = true;
+			digitalWrite(DR_PIN, HIGH);
+			status.set(StatusIndicator::NORMAL);
+		}
+
+		if (pos >= num_steps)
+		{
+			pos = num_steps;
+			dir = false;
+			digitalWrite(DR_PIN, LOW);
+			status.set(StatusIndicator::WARN);
+		}
+
+		if (dir)
+		{
+			pos++;
+		}
+		else
+		{
+			pos--;
+		}
+
+		step();
+		status.update();
+		int t = calcDelay(period, interval_base, interval_variance, num_steps, pos);
+		delayMicroseconds(t);
 	}
-
-	step();
-	status.update();
-
-	int t = calcDelay(period, interval_base, interval_variance, num_steps, pos);
-
-	delayMicroseconds(t);
-
 }
