@@ -101,14 +101,14 @@ void setup()
 
 void loadConfig()
 {
-	/*File32 readFile = fatfs.open(CONFIG_FILE, FILE_READ);
+	File32 readFile = fatfs.open(CONFIG_FILE, FILE_READ);
 	if (!readFile)
 	{
 		Serial.println("Error, failed to open for reading!");
 		while (1) yield();
 	}
 	String json = readFile.readStringUntil('\n');
-	DeserializationError status = deserializeJson(cfg, json);*/
+	DeserializationError status = deserializeJson(cfg, json);
 }
 
 void saveConfig()
@@ -117,7 +117,7 @@ void saveConfig()
 	cfg["cycles"] = cfg_cycles;
 	cfg["interval_base"] = cfg_interval_base;
 
-	/*String output;
+	String output;
 	serializeJson(cfg, output);
 
 	if (fatfs.exists(CONFIG_FILE))
@@ -128,14 +128,14 @@ void saveConfig()
 	File32 dataFile = fatfs.open(CONFIG_FILE, FILE_WRITE);
 	if (dataFile)
 	{
-		dataFile.print("Hello!\n");
+		dataFile.println(output.c_str());
 		dataFile.close();
-		Serial.println("Wrote new data to file!");
+		Serial.println("Config saved to flash!");
 	}
 	else
 	{
 		status.set(StatusIndicator::ERR);
-	}*/
+	}
 }
 
 void step()
@@ -187,7 +187,7 @@ void loop()
 			{
 				loadConfig();
 				Serial.printf("\nCurrent Config\n--------------\n");
-					Serial.printf("CYCLES   : %d\n", cfg_cycles);
+				Serial.printf("CYCLES   : %d\n", cfg_cycles);
 				Serial.printf("STEPS    : %d\n", cfg_num_steps);
 				Serial.printf("INTERVAL : %dms\n", cfg_interval_base);
 			}
