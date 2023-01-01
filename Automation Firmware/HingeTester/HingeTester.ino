@@ -13,12 +13,13 @@
 
 #define CONFIG_FILE "data.csv"
 #define SERIAL_DELAY 15000
+#define DRIVER_DELAY 500
 
 #include <Adafruit_DotStar.h>
 #include <SPI.h>
 #include <SdFat.h>
 #include <Adafruit_SPIFlash.h>
-
+#include <ArduinoJson.h>
 #include "src/StatusIndicator.h"
 #include "src/flash_config.h"
 
@@ -27,15 +28,17 @@ StatusIndicator status = StatusIndicator(&ds);
 
 Adafruit_SPIFlash flash(&flashTransport);
 FatVolume fatfs;
+StaticJsonDocument<256> cfg;
 
-const int startup = 500;
-const int num_steps = 800;
-const int period = 10;
-const int interval_base = 150;
-const int interval_variance = 1000;
+int cfg_num_steps = 800;
+int cfg_period = 10;
+int cfg_interval_base = 150;
+int cfg_interval_variance = 1000;
+int cfg_cycles = 1000;
 
 bool dir = false;
 int pos = 0;
+int cycle_count = 0;
 
 bool enter_config = false;
 String command = "";
@@ -54,7 +57,7 @@ void setup()
 	pinMode(EN_PIN, OUTPUT);
 	pinMode(ST_PIN, OUTPUT);
 	pinMode(DR_PIN, OUTPUT);
-	delay(startup);
+	delay(DRIVER_DELAY);
 	digitalWrite(EN_PIN, HIGH);
 	digitalWrite(DR_PIN, HIGH);
 	dir = true;
@@ -94,8 +97,35 @@ void setup()
 
 	status.set(StatusIndicator::NORMAL);
 	Serial.println("MobileDemand Hinge Failure Tester");
+}
 
-	/*File32 dataFile = fatfs.open(CONFIG_FILE, FILE_WRITE);
+void loadConfig()
+{
+	/*File32 readFile = fatfs.open(CONFIG_FILE, FILE_READ);
+	if (!readFile)
+	{
+		Serial.println("Error, failed to open for reading!");
+		while (1) yield();
+	}
+	String json = readFile.readStringUntil('\n');
+	DeserializationError status = deserializeJson(cfg, json);*/
+}
+
+void saveConfig()
+{
+	cfg["steps"] = cfg_num_steps;
+	cfg["cycles"] = cfg_cycles;
+	cfg["interval_base"] = cfg_interval_base;
+
+	/*String output;
+	serializeJson(cfg, output);
+
+	if (fatfs.exists(CONFIG_FILE))
+	{
+		fatfs.remove(CONFIG_FILE);
+	}
+
+	File32 dataFile = fatfs.open(CONFIG_FILE, FILE_WRITE);
 	if (dataFile)
 	{
 		dataFile.print("Hello!\n");
@@ -105,22 +135,13 @@ void setup()
 	else
 	{
 		status.set(StatusIndicator::ERR);
-	}
-
-	File32 readFile = fatfs.open(CONFIG_FILE, FILE_READ);
-	if (!readFile)
-	{
-		Serial.println("Error, failed to open for reading!");
-		while (1) yield();
-	}
-	String line = readFile.readStringUntil('\n');
-	Serial.print(F("First line of test.txt: ")); Serial.println(line);*/
+	}*/
 }
 
 void step()
 {
 	digitalWrite(ST_PIN, HIGH);
-	delayMicroseconds(period);
+	delayMicroseconds(cfg_period);
 	digitalWrite(ST_PIN, LOW);
 }
 
@@ -146,8 +167,29 @@ void loop()
 
 			if (cmd.equalsIgnoreCase("STEPS"))
 			{
-				int steps = arg.toInt();
-				Serial.printf("Setting step count to %d\n", steps);
+				cfg_num_steps = arg.toInt();
+				Serial.printf("Setting step count to %d\n", cfg_num_steps);
+				saveConfig();
+			}
+			else if (cmd.equalsIgnoreCase("CYCLES"))
+			{
+				cfg_cycles = arg.toInt();
+				Serial.printf("Setting cycle count to %d\n", cfg_cycles);
+				saveConfig();
+			}
+			else if (cmd.equalsIgnoreCase("INTERVAL"))
+			{
+				cfg_interval_base = arg.toInt();
+				Serial.printf("Setting base interval duration to %d\n", cfg_interval_base);
+				saveConfig();
+			}
+			else if (cmd.equalsIgnoreCase("VIEW"))
+			{
+				loadConfig();
+				Serial.printf("\nCurrent Config\n--------------\n");
+					Serial.printf("CYCLES   : %d\n", cfg_cycles);
+				Serial.printf("STEPS    : %d\n", cfg_num_steps);
+				Serial.printf("INTERVAL : %dms\n", cfg_interval_base);
 			}
 			else if (cmd.equalsIgnoreCase("EXIT"))
 			{
@@ -161,37 +203,41 @@ void loop()
 		}
 	}
 
-	// Start operation is confic session is not requested
+	// Start operation if config session is not requested
 	else
 	{
-		if (pos <= 0)
-		{
-			pos = 0;
-			dir = true;
-			digitalWrite(DR_PIN, HIGH);
-			status.set(StatusIndicator::NORMAL);
-		}
-
-		if (pos >= num_steps)
-		{
-			pos = num_steps;
-			dir = false;
-			digitalWrite(DR_PIN, LOW);
-			status.set(StatusIndicator::WARN);
-		}
-
-		if (dir)
-		{
-			pos++;
-		}
-		else
-		{
-			pos--;
-		}
-
-		step();
 		status.update();
-		int t = calcDelay(period, interval_base, interval_variance, num_steps, pos);
-		delayMicroseconds(t);
+		if (cycle_count <= cfg_cycles)
+		{
+			if (pos <= 0)
+			{
+				pos = 0;
+				dir = true;
+				digitalWrite(DR_PIN, HIGH);
+				status.set(StatusIndicator::NORMAL);
+				cycle_count++;
+			}
+
+			if (pos >= cfg_num_steps)
+			{
+				pos = cfg_num_steps;
+				dir = false;
+				digitalWrite(DR_PIN, LOW);
+				status.set(StatusIndicator::WARN);
+			}
+
+			if (dir)
+			{
+				pos++;
+			}
+			else
+			{
+				pos--;
+			}
+
+			step();
+			int t = calcDelay(cfg_period, cfg_interval_base, cfg_interval_variance, cfg_num_steps, pos);
+			delayMicroseconds(t);
+		}
 	}
 }
