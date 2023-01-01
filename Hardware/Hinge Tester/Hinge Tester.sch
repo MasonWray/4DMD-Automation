@@ -294,12 +294,12 @@ F 3 "~" H 4400 1700 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Breakouts:Adafruit_ItsyBitsy_M4_Express U?
+L Breakouts:Adafruit_ItsyBitsy_M4_Express U2
 U 1 1 63624B99
 P 7550 3450
-F 0 "U?" H 7550 3615 50  0000 C CNN
+F 0 "U2" H 7550 3615 50  0000 C CNN
 F 1 "Adafruit_ItsyBitsy_M4_Express" H 7550 3524 50  0000 C CNN
-F 2 "" H 7550 3650 50  0001 C CNN
+F 2 "Modules:Adafruit_ItsyBitsy_M4" H 7550 3650 50  0001 C CNN
 F 3 "" H 7550 3650 50  0001 C CNN
 	1    7550 3450
 	1    0    0    -1  
