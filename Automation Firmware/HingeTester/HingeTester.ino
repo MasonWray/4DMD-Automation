@@ -96,19 +96,39 @@ void setup()
 	}
 
 	status.set(StatusIndicator::NORMAL);
+	loadConfig();
 	Serial.println("MobileDemand Hinge Failure Tester");
 }
 
 void loadConfig()
 {
+	if (!fatfs.exists(CONFIG_FILE))
+	{
+		Serial.println("Config file not found, restoring defaults");
+		saveConfig();
+	}
+
 	File32 readFile = fatfs.open(CONFIG_FILE, FILE_READ);
 	if (!readFile)
 	{
-		Serial.println("Error, failed to open for reading!");
-		while (1) yield();
+		status.set(StatusIndicator::ERR);
+		Serial.println("Error, failed to open config file");
+		return;
 	}
+
 	String json = readFile.readStringUntil('\n');
-	DeserializationError status = deserializeJson(cfg, json);
+	DeserializationError deser_status = deserializeJson(cfg, json);
+
+	if (deser_status != DeserializationError::Ok)
+	{
+		status.set(StatusIndicator::ERR);
+		Serial.println("Error, failed to parse config JSON");
+		return;
+	}
+
+	cfg_num_steps = cfg["steps"];
+	cfg_cycles = cfg["cycles"];
+	cfg_interval_base = cfg["interval_base"];
 }
 
 void saveConfig()
@@ -130,7 +150,6 @@ void saveConfig()
 	{
 		dataFile.println(output.c_str());
 		dataFile.close();
-		Serial.println("Config saved to flash!");
 	}
 	else
 	{
