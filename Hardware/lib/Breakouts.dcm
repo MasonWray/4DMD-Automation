@@ -1,0 +1,7 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP Adafruit_ItsyBitsy_M4_Express
+D ATSAMD51 Cortex M4 processor running at 120 MHz. 512KB Flash and 192KB RAM.
+$ENDCMP
+#
+#End Doc Library
