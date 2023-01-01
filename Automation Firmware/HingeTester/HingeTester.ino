@@ -38,6 +38,7 @@ bool dir = false;
 int pos = 0;
 
 bool enter_config = false;
+String command = "";
 
 void setup()
 {
@@ -135,7 +136,29 @@ void loop()
 	// Enter REPL is serial connection exists
 	if (enter_config)
 	{
+		status.update();
+		if (Serial.available())
+		{
+			String input = Serial.readStringUntil('\n');
+			int separator = input.indexOf(' ');
+			String cmd = separator > -1 ? input.substring(0, separator) : input;
+			String arg = separator > -1 && separator != input.length() - 1 ? input.substring(separator + 1, input.length()) : "";
 
+			if (cmd.equalsIgnoreCase("STEPS"))
+			{
+				int steps = arg.toInt();
+				Serial.printf("Setting step count to %d\n", steps);
+			}
+			else if (cmd.equalsIgnoreCase("EXIT"))
+			{
+				Serial.println("Exiting config");
+				enter_config = false;
+			}
+			else
+			{
+				Serial.printf("Unrecognized command: '%s'\n", cmd.c_str());
+			}
+		}
 	}
 
 	// Start operation is confic session is not requested
