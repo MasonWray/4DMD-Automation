@@ -210,6 +210,17 @@ void loop()
 				Serial.printf("STEPS    : %d\n", cfg_num_steps);
 				Serial.printf("INTERVAL : %dms\n", cfg_interval_base);
 			}
+			else if (cmd.equalsIgnoreCase("HELP"))
+			{
+				Serial.println();
+				Serial.println("Enter a command followed my an numeric argument, if applicable (specified by [n]). Commands are case-insensitive. Do not include the [] when using commands.\n");
+				Serial.println("STEPS [n]   \n   Define the number of steps in one half sweep, top-to-bottom or bottom-to-top.\n");
+				Serial.println("CYCLES [n]  \n   Define the number of full sweeps the tester should make before concluding the test.\n");
+				Serial.println("INTERVAL [n]\n   The base (minimum) delay between steps. Correspends to inverse of sweep speed. Will be increased at ends of sweep according to acceleration curve.\n");
+				Serial.println("VIEW        \n   Load and display the current test configuration.");
+				Serial.println("HELP        \n   Display this help message over serial.\n");
+				Serial.println("EXIT        \n   Exit the configuration menu. Start the execution sequence immediately.\n");
+			}
 			else if (cmd.equalsIgnoreCase("EXIT"))
 			{
 				Serial.println("Exiting config");
