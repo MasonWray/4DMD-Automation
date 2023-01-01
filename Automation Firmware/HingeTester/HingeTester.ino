@@ -12,6 +12,7 @@
 #define M2_PIN 10
 
 #define CONFIG_FILE "data.csv"
+#define SERIAL_DELAY 15000
 
 #include <Adafruit_DotStar.h>
 #include <SPI.h>
@@ -27,8 +28,6 @@ StatusIndicator status = StatusIndicator(&ds);
 Adafruit_SPIFlash flash(&flashTransport);
 FatVolume fatfs;
 
-const bool req_serial = false;
-
 const int startup = 500;
 const int num_steps = 800;
 const int period = 10;
@@ -38,8 +37,11 @@ const int interval_variance = 1000;
 bool dir = false;
 int pos = 0;
 
+bool enter_config = false;
+
 void setup()
 {
+	// Configure microstepping
 	pinMode(M0_PIN, OUTPUT);
 	pinMode(M1_PIN, OUTPUT);
 	pinMode(M2_PIN, OUTPUT);
@@ -47,6 +49,7 @@ void setup()
 	digitalWrite(M1_PIN, LOW);
 	digitalWrite(M2_PIN, HIGH);
 
+	// Configure driver step pins
 	pinMode(EN_PIN, OUTPUT);
 	pinMode(ST_PIN, OUTPUT);
 	pinMode(DR_PIN, OUTPUT);
@@ -55,15 +58,20 @@ void setup()
 	digitalWrite(DR_PIN, HIGH);
 	dir = true;
 
+	// Start status LED controller
 	status.begin();
 	status.set(StatusIndicator::STARTING);
 
 	Serial.begin(115200);
-	if (req_serial)
+
+	int serial_timer = millis();
+	while (millis() - serial_timer < SERIAL_DELAY)
 	{
-		while (!Serial)
+		status.update();
+		if (Serial)
 		{
-			status.update();
+			enter_config = true;
+			break;
 		}
 	}
 
@@ -103,7 +111,8 @@ void setup()
 	}
 
 	File32 readFile = fatfs.open(CONFIG_FILE, FILE_READ);
-	if (!readFile) {
+	if (!readFile)
+	{
 		Serial.println("Error, failed to open for reading!");
 		while (1) yield();
 	}
@@ -129,7 +138,6 @@ void loop()
 {
 	if (pos <= 0)
 	{
-		Serial.println("bottom");
 		pos = 0;
 		dir = true;
 		digitalWrite(DR_PIN, HIGH);
@@ -138,7 +146,6 @@ void loop()
 
 	if (pos >= num_steps)
 	{
-		Serial.println("top");
 		pos = num_steps;
 		dir = false;
 		digitalWrite(DR_PIN, LOW);
@@ -158,7 +165,6 @@ void loop()
 	status.update();
 
 	int t = calcDelay(period, interval_base, interval_variance, num_steps, pos);
-	Serial.println(t);
 
 	delayMicroseconds(t);
 
