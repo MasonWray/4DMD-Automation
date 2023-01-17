@@ -41,7 +41,8 @@ int pos = 0;
 int cycle_count = 0;
 
 bool enter_config = false;
-String command = "";
+//String command = "";
+String input = "";
 
 void setup()
 {
@@ -116,7 +117,7 @@ void loadConfig()
 		return;
 	}
 
-	String json = readFile.readStringUntil('\n');
+	String json = readFile.readStringUntil('\n\r');
 	DeserializationError deser_status = deserializeJson(cfg, json);
 
 	if (deser_status != DeserializationError::Ok)
@@ -179,56 +180,66 @@ void loop()
 		status.update();
 		if (Serial.available())
 		{
-			String input = Serial.readStringUntil('\n');
-			int separator = input.indexOf(' ');
-			String cmd = separator > -1 ? input.substring(0, separator) : input;
-			String arg = separator > -1 && separator != input.length() - 1 ? input.substring(separator + 1, input.length()) : "";
-
-			if (cmd.equalsIgnoreCase("STEPS"))
+			char i = Serial.read();
+			if (i != '\n' && i != '\r')
 			{
-				cfg_num_steps = arg.toInt();
-				Serial.printf("Setting step count to %d\n", cfg_num_steps);
-				saveConfig();
-			}
-			else if (cmd.equalsIgnoreCase("CYCLES"))
-			{
-				cfg_cycles = arg.toInt();
-				Serial.printf("Setting cycle count to %d\n", cfg_cycles);
-				saveConfig();
-			}
-			else if (cmd.equalsIgnoreCase("INTERVAL"))
-			{
-				cfg_interval_base = arg.toInt();
-				Serial.printf("Setting base interval duration to %d\n", cfg_interval_base);
-				saveConfig();
-			}
-			else if (cmd.equalsIgnoreCase("VIEW"))
-			{
-				loadConfig();
-				Serial.printf("\nCurrent Config\n--------------\n");
-				Serial.printf("CYCLES   : %d\n", cfg_cycles);
-				Serial.printf("STEPS    : %d\n", cfg_num_steps);
-				Serial.printf("INTERVAL : %dms\n", cfg_interval_base);
-			}
-			else if (cmd.equalsIgnoreCase("HELP"))
-			{
-				Serial.println();
-				Serial.println("Enter a command followed my an numeric argument, if applicable (specified by [n]). Commands are case-insensitive. Do not include the [] when using commands.\n");
-				Serial.println("STEPS [n]   \n   Define the number of steps in one half sweep, top-to-bottom or bottom-to-top.\n");
-				Serial.println("CYCLES [n]  \n   Define the number of full sweeps the tester should make before concluding the test.\n");
-				Serial.println("INTERVAL [n]\n   The base (minimum) delay between steps. Correspends to inverse of sweep speed. Will be increased at ends of sweep according to acceleration curve.\n");
-				Serial.println("VIEW        \n   Load and display the current test configuration.");
-				Serial.println("HELP        \n   Display this help message over serial.\n");
-				Serial.println("EXIT        \n   Exit the configuration menu. Start the execution sequence immediately.\n");
-			}
-			else if (cmd.equalsIgnoreCase("EXIT"))
-			{
-				Serial.println("Exiting config");
-				enter_config = false;
+				Serial.print(i);
+				input.concat(i);
 			}
 			else
 			{
-				Serial.printf("Unrecognized command: '%s'\n", cmd.c_str());
+				Serial.println();
+				int separator = input.indexOf(' ');
+				String cmd = separator > -1 ? input.substring(0, separator) : input;
+				String arg = separator > -1 && separator != input.length() - 1 ? input.substring(separator + 1, input.length()) : "";
+
+				if (cmd.equalsIgnoreCase("STEPS"))
+				{
+					cfg_num_steps = arg.toInt();
+					Serial.printf("Setting step count to %d\n\r", cfg_num_steps);
+					saveConfig();
+				}
+				else if (cmd.equalsIgnoreCase("CYCLES"))
+				{
+					cfg_cycles = arg.toInt();
+					Serial.printf("Setting cycle count to %d\n\r", cfg_cycles);
+					saveConfig();
+				}
+				else if (cmd.equalsIgnoreCase("INTERVAL"))
+				{
+					cfg_interval_base = arg.toInt();
+					Serial.printf("Setting base interval duration to %d\n\r", cfg_interval_base);
+					saveConfig();
+				}
+				else if (cmd.equalsIgnoreCase("VIEW"))
+				{
+					loadConfig();
+					Serial.printf("\n\rCurrent Config\n\r--------------\n\r");
+					Serial.printf("CYCLES   : %d\n\r", cfg_cycles);
+					Serial.printf("STEPS    : %d\n\r", cfg_num_steps);
+					Serial.printf("INTERVAL : %dms\n\r", cfg_interval_base);
+				}
+				else if (cmd.equalsIgnoreCase("HELP"))
+				{
+					Serial.println();
+					Serial.println("Enter a command followed my an numeric argument, if applicable (specified by [n]). Commands are case-insensitive. Do not include the [] when using commands.\n\r");
+					Serial.println("STEPS [n]   \n\r   Define the number of steps in one half sweep, top-to-bottom or bottom-to-top.\n\r");
+					Serial.println("CYCLES [n]  \n\r   Define the number of full sweeps the tester should make before concluding the test.\n\r");
+					Serial.println("INTERVAL [n]\n\r   The base (minimum) delay between steps. Correspends to inverse of sweep speed. Will be increased at ends of sweep according to acceleration curve.\n\r");
+					Serial.println("VIEW        \n\r   Load and display the current test configuration.");
+					Serial.println("HELP        \n\r   Display this help message over serial.\n\r");
+					Serial.println("EXIT        \n\r   Exit the configuration menu. Start the execution sequence immediately.\n\r");
+				}
+				else if (cmd.equalsIgnoreCase("EXIT"))
+				{
+					Serial.println("Exiting config");
+					enter_config = false;
+				}
+				else
+				{
+					Serial.printf("Unrecognized command: '%s'\n\r", cmd.c_str());
+				}
+				input = "";
 			}
 		}
 	}
